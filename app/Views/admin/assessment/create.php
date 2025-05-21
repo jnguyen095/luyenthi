@@ -118,35 +118,24 @@ Tạo đề thi
                                 <!-- Phần câu hỏi đã chọn -->
                                 <div class="card">
                                     <div class="card-header bg-success text-white">
-                                        <span class="mb-0">Câu Hỏi Đã Chọn (5)</span>
+                                        <span class="mb-0">Câu Hỏi Đã Chọn <span id="selectedCount">(0)</span></span>
                                     </div>
                                     <div class="card-body">
                                         <!-- Danh sách có thể kéo thả -->
                                         <div class="list-group" id="selectedQuestions">
                                             <!-- Item mẫu -->
-                                            <div class="list-group-item">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <small class="text-muted">#1</small>
-                                                        <p class="mb-1">Which is bigger, the sun or the moon?</p>
-                                                    </div>
-                                                    <div>
-                                                        <button class="btn btn-sm btn-danger"><i class="ti-trash"></i></button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <!-- Item mẫu -->
-                                            <div class="list-group-item">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <small class="text-muted">#2</small>
-                                                        <p class="mb-1">Which is bigger, the sun or the moon?</p>
-                                                    </div>
-                                                    <div>
-                                                        <button class="btn btn-sm btn-danger"><i class="ti-trash"></i></button>
-                                                    </div>
-                                                </div>
-                                            </div>
+<!--                                            <div class="list-group-item">-->
+<!--                                                <div class="d-flex justify-content-between align-items-center">-->
+<!--                                                    <div>-->
+<!--                                                        <small class="text-muted">#1</small>-->
+<!--                                                        <p class="mb-1">Which is bigger, the sun or the moon?</p>-->
+<!--                                                    </div>-->
+<!--                                                    <div>-->
+<!--                                                        <button class="btn btn-sm btn-danger"><i class="ti-trash"></i></button>-->
+<!--                                                    </div>-->
+<!--                                                </div>-->
+<!--                                            </div>-->
+
                                         </div>
 
                                         <!-- Nút lưu đề -->
@@ -173,11 +162,7 @@ Tạo đề thi
 <script>
     var lazyLoading = false;
     $(function () {
-        $("#selectedQuestions").sortable({
-            update: function() {
-                // Cập nhật thứ tự câu hỏi khi kéo thả
-            }
-        });
+        initialSortable();
 
         $('#keywordFilter').keypress(function(event) {
             if (event.which === 13) { // 13 is the key code for Enter
@@ -315,15 +300,64 @@ Tạo đề thi
         $(".add2Assessment").unbind('click');
         $(".add2Assessment").click(function(){
             $('#preloader').show();
-           var questionId = $(this).data('qpool');
-           console.log('qs:' + questionId);
-           $("#qpool-"+questionId).remove();
-            $('#preloader').hide();
+            var questionId = $(this).data('qpool');
+            // console.log('qs:' + questionId);
+            jQuery.ajax({
+                type: "GET",
+                url: urls.getQuestionById_url,
+                dataType: 'json',
+                data: {question_id: questionId},
+                success: function(res){
+                    if($("input[name='question[" + questionId + "].index']").length < 1){
+                        var startHtml = '';
+                        for(var i = 0; i < res['difficulty']; i++){
+                            startHtml += '<i class="ti-star font-14 text-primary"></i>';
+                        }
+
+                        var index = parseInt($("#selectedQuestions .list-group-item").length) + 1;
+                        $("#selectedCount").html('('+ index + ')');
+                        var html = '';
+                        html += '<div data-questionid="' + res['id'] + '" class="list-group-item">' +
+                            '                                                <div class="d-flex justify-content-between align-items-center">\n' +
+                            '                                                    <div>' +
+                            '                                                        <small class="text-muted" id="txt-index-' + res['id'] + '">#'+ index + '</small>' +
+                            '                                                        <small class="text-muted">Chủ đề: ' + res['topic_code'] + ', Độ khó: ' + startHtml + '</small>' +
+                            '                                                        <input type="hidden" name="question['+res['id'] +'].index" value="' + index + '"/> ' +
+                            '                                                        <p class="mb-1">' + res['question'] + '</p>\n' +
+                            '                                                    </div>\n' +
+                            '                                                    <div>\n' +
+                            '                                                        <button class="btn btn-sm btn-danger"><i class="ti-trash"></i></button>\n' +
+                            '                                                    </div>\n' +
+                            '                                                </div>\n' +
+                            '                                            </div>';
+                        $("#selectedQuestions").append(html);
+                        initialSortable();
+                    }
+                    $("#qpool-"+questionId).remove();
+                    $('#preloader').hide();
+                }
+            });
+
         });
     }
 
     function resetQuestionListView(){
         $("#questionList").html("");
+    }
+
+    function initialSortable(){
+        $("#selectedQuestions").unbind('sortable');
+        $("#selectedQuestions").sortable({
+            update: function() {
+                var items = $("#selectedQuestions .list-group-item");
+                for(var i = 0; i < items.length; i++){
+                    var qsId = $(items[i]).data('questionid');
+                    $("#txt-index-" + qsId).html("#" + (i + 1));
+                    $("input[name='question[" + qsId + "].index']").val(i+1);
+                }
+                // Cập nhật thứ tự câu hỏi khi kéo thả
+            }
+        });
     }
 </script>
 <?= $this->endSection() ?>

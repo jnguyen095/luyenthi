@@ -30,28 +30,15 @@ class AjaxController extends BaseController
         $offset = $this->request->getPost('offset');
 
         $questionModel = new QuestionModel();
-        //$data = $questionModel->join('subjects', 'questions.subject_code = subjects.code', 'left')->where('subjects.id', $subjectId)->findAll(10, $offset * 10);
-        $db      = \Config\Database::connect();
-        $builder = $db->table('questions');
-        $builder->select('questions.*');
-        $builder->join('grades', 'questions.grade_code = grades.code', 'left');
-        $builder->join('subjects', 'questions.subject_code = subjects.code', 'left');
-        if($topicId != null & $topicId > 0){
-            $builder->join('topics', 'questions.topic_code = topics.code', 'left');
-        }
-        $builder->where('grades.id', $gradeId);
-        $builder->where('subjects.id', $subjectId);
-        if($topicId != null & $topicId > 0){
-            $builder->where('topics.id', $topicId);
-        }
-        if($difficulty > 0){
-            $builder->where('questions.difficulty', $difficulty);
-        }
-        if(strlen(trim($keyword)) > 0){
-            $builder->like('questions.question', $keyword);
-        }
-        $query = $builder->get(10, $offset * 10);
+        $result = $questionModel->getQuestions($gradeId, $subjectId, $topicId, $difficulty, $keyword, $offset);
+        return json_encode($result);
+    }
 
-        return json_encode($query->getResult());
+    public function getQuestionById(): string
+    {
+        $questionId = $this->request->getGet('question_id');
+        $questionModel = new QuestionModel();
+        $question = $questionModel->find($questionId);
+        return json_encode($question);
     }
 }

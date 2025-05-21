@@ -15,3 +15,4 @@ $routes->get('/admin/assessment/create', 'AssessmentController::create');
 // Ajax REST
 $routes->get('/admin/ajax/getTopicBySubjectId', 'AjaxController::getTopicBySubjectId');
 $routes->post('/admin/ajax/getQuestions', 'AjaxController::getQuestions');
+$routes->get('/admin/ajax/getQuestionById', 'AjaxController::getQuestionById');

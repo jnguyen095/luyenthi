@@ -361,6 +361,7 @@
             var urls = {
                 getTopicBySubject_url: '<?=base_url('/admin/ajax/getTopicBySubjectId')?>',
                 getQuestions_url: '<?=base_url('/admin/ajax/getQuestions')?>',
+                getQuestionById_url: '<?=base_url('/admin/ajax/getQuestionById')?>',
                 base_url: '<?=base_url()?>'
 
             };
